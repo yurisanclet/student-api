@@ -1,4 +1,4 @@
-package com.student.api.Domain.DTO;
+package com.student.api.Domain.DTO.Student;
 
 import java.util.UUID;
 

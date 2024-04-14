@@ -1,15 +1,18 @@
 package com.student.api.Domain.Entity;
 
-import com.student.api.Domain.DTO.RegisterStudentDTO;
-import com.student.api.Domain.DTO.StudentDTO;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.student.api.Domain.DTO.Student.RegisterStudentDTO;
+import com.student.api.Domain.DTO.Student.StudentDTO;
+import com.student.api.Domain.DTO.Student.StudentWithCoursesDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import org.springframework.data.jpa.repository.EntityGraph;
 
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "student")
@@ -32,6 +35,9 @@ public class Student {
     @Column(name = "registration_number", nullable = false, unique = true)
     private Long registrationNumber;
 
+    @ManyToMany(mappedBy = "students")
+    @JsonManagedReference
+    private Set<Course> courses = new HashSet<>();
     public Student(RegisterStudentDTO studentDTO) {
         this.name = studentDTO.name();
         this.surname = studentDTO.surname();
@@ -42,5 +48,9 @@ public class Student {
         this.name = studentDTO.name();
         this.surname = studentDTO.surname();
         this.registrationNumber = studentDTO.registrationNumber();
+    }
+    public void addCourse(Course course) {
+        this.courses.add(course);
+        course.getStudents().add(this);
     }
 }
