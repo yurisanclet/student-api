@@ -10,46 +10,44 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Primary
 @Transactional
 public class StudentServiceImplements implements StudentService {
-    @Autowired
-    private StudentRepository studentRepository;
-
+    private final StudentRepository studentRepository;
+    public StudentServiceImplements(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
     @Override
     public void registerStudent(RegisterStudentDTO studentDTO) {
-        Student student = new Student(studentDTO);
-
-        if(studentRepository.existsByRegistrationNumber(student.getRegistrationNumber())) {
-            throw new IllegalArgumentException("Student with registration number " + student.getRegistrationNumber() + " already exists");
+        if (studentDTO == null || studentDTO.registrationNumber() == null) {
+            throw new IllegalArgumentException("Invalid student data provided");
         }
-
+        Student student = new Student(studentDTO);
+        if(studentRepository.existsByRegistrationNumber(studentDTO.registrationNumber())) {
+            throw new IllegalArgumentException("Student with registration number " + studentDTO.registrationNumber() + " already exists");
+        }
         studentRepository.save(student);
     }
 
     @Override
     public void updateStudent(String studentId, StudentDTO studentDTO) {
-        try {
-            Student student = studentRepository.findById(studentId);
-            if (student == null) {
-                throw new IllegalArgumentException("Student with id " + studentId + " does not exist");
-            }
-            student.update(studentDTO);
-            studentRepository.save(student);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(studentDTO == null || studentDTO.registrationNumber() == null) {
+            throw new IllegalArgumentException("Invalid student data provided");
         }
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new IllegalArgumentException("Student with id " + studentId + " does not exist"));
+        student.update(studentDTO);
+        studentRepository.save(student);
     }
 
     @Override
     public void deleteStudent(String id) {
-        if(studentRepository.findById(id) == null) {
-            throw new IllegalArgumentException("Student with id " + id + " does not exist");
-        } else {
-            studentRepository.deleteById(id);
-        }
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Student with id " + id + " does not exist"));
+        studentRepository.deleteById(id);
     }
 
     @Override
